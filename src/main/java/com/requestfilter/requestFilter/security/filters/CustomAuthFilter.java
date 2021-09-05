@@ -8,6 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.header.Header;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -15,16 +16,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class CustomAuthFilter implements Filter {
+public class CustomAuthFilter extends OncePerRequestFilter// implements Filter
+{
     @Autowired
     private AuthenticationManager authenticationManager;
 
     @Override
-    public void doFilter(ServletRequest servletRequest,
-                         ServletResponse servletResponse,
+    public void doFilterInternal(HttpServletRequest servletRequest,
+                         HttpServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
 
-        String token = ((HttpServletRequest) servletRequest).getHeader("Authorization");
+        String token =  servletRequest.getHeader("Authorization");
         System.out.println(token);
         try {
             Authentication result = authenticationManager.authenticate(new CustomAuthentication(token, null));
@@ -34,7 +36,7 @@ public class CustomAuthFilter implements Filter {
             }
         }
         catch (AuthenticationException exception) {
-            ((HttpServletResponse)servletResponse).setStatus(HttpServletResponse.SC_FORBIDDEN);
+          servletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
         }
 
     }
